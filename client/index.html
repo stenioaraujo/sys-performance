@@ -1,0 +1,162 @@
+<!doctype html>
+
+<html>
+  <head>
+    <title>System Performance</title>
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.0/css/font-awesome.css">
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.0/css/font-awesome.css">
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.0/css/font-awesome.css">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+  	<script src="http://server.stenioelson.com.br:3000/socket.io/socket.io.js"></script>
+  	<script type="text/javascript">
+  		$(document).ready(function(){
+	  		var socket = io.connect("http://THE_SERVER_IP/HOSTNAME_HERE:3000");
+	  		
+	  		var oldRequests = 0;
+	  		var newRequests = 0;
+	  		socket.on("system_performance", function(info) {
+				if (info) {
+					$("#cpus").html(info.cpu.cpus.length);
+					
+					var cpuNames = {};
+					for (var i = 0; i < info.cpu.cpus.length; i++) {
+						if (cpuNames[info.cpu.cpus[i].model]) {						
+							cpuNames[info.cpu.cpus[i].model]++;
+						} else {						
+							cpuNames[info.cpu.cpus[i].model] = 1;
+						}
+					}
+					
+					var cpuNamesToString = "";
+					for (var cpu in cpuNames) {
+						if (cpuNamesToString !== "")
+							cpuNamesToString += "<br> ";
+						cpuNamesToString += cpuNames[cpu] + " x " + cpu;
+					}
+					
+					$("#cpu-names").html(cpuNamesToString);
+					
+					$("#uptime").html(info.uptime.formated);
+					$("#cpu-progress-bar").css("width", parseInt(info.cpu.cpu_usage) + "%");
+					$("#cpu-progress-bar").html(parseInt(info.cpu.cpu_usage) + "%");
+					
+					var memUsed = parseInt(info.memory.buffer.used/1024.0);
+					var memTotal = parseInt(info.memory.buffer.total/1024.0);
+					var swapUsed = parseInt(info.memory.swap.used/1024.0);
+					var swapTotal = parseInt(info.memory.swap.total/1024.0);
+					var memPerc = parseInt(memUsed * 100 / memTotal);
+					var swapPerc = parseInt(swapUsed * 100 / swapTotal);
+					
+					$("#mem-used").html(memUsed);
+					$("#mem-total").html(memTotal);
+					$("#swap-used").html(swapUsed);
+					$("#swap-total").html(swapTotal);
+					$("#mem-progress-bar").css("width", memPerc + "%");
+					$("#mem-progress-bar").html(memPerc + "%");
+					$("#swap-progress-bar").css("width", swapPerc + "%");
+					$("#swap-progress-bar").html(swapPerc + "%");
+					
+					oldRequests = newRequests;
+					newRequests = +info.nginx.requested_connections;
+					
+					$("#requests-per-second").html(newRequests-oldRequests);
+					$("#active-connections").html(info.nginx.active_connections);
+					
+					var bandwidthUsed = Math.round(info.bandwidth.used.total * 100) / 100;
+					var bandwidthPerc = parseInt((bandwidthUsed * 100 / info.bandwidth.limit ) * 100) / 100 + "%";
+					$("#bandwidth-monthly-limit").html(info.bandwidth.limit);
+					$("#bandwidth-monthly-start-date").html(info.bandwidth.start_date);
+					$("#bandwidth-monthly-used").html(bandwidthUsed);
+					$("#bandwidth-monthly-progress-bar").html(bandwidthPerc);
+					$("#bandwidth-monthly-progress-bar").css("width", bandwidthPerc);
+				}
+	  		});
+	  		
+	  		$("#edit-bandwidth-limit").click(function() {
+	  			socket.emit("BANDWIDTH_LIMIT", prompt("Input the Bandwidth limit in GiB"));
+	  		});
+  		});
+  	</script>
+  </head>
+  
+  <body>
+    <div class="container">
+      <header>
+        <br>
+        <h1 class="text-center"><i class="fa fa-gear">&nbsp;</i>System performance</h1>
+      </header>
+      <div class="row"></div>
+      <div class="row">
+        <div class="col-sm-12 col-md-6 col-lg-3">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <b>SERVER</b>
+            </div>
+            <div class="panel-body">
+              <h5>CPUs: <b id="cpus">0</b></h5>
+              <h5><b id="cpu-names"></b></h5>
+              <h5>Uptime</h5>
+              <h5><b id="uptime">-</b></h5>
+              <h5 id="cpu">CPU</h5>
+              <div class="progress progress-warning">
+                <div id="cpu-progress-bar" class="progress-bar" style="min-width: 5%; width: 0%;">0%</div>
+              </div>
+              <h5 id="mem">Memory (<b id="mem-used">0</b> / <b id="mem-total">0</b> MB)</h5>
+              <div class="progress progress-info">
+                <div id="mem-progress-bar" class="progress-bar" style="min-width: 5%; width: 0%;">0%</div>
+              </div>
+              <h5 id="swap">Swap (<b id="swap-used">0</b> / <b id="swap-total">0</b> MB)</h5>
+              <div class="progress progress-info">
+                <div id="swap-progress-bar" class="progress-bar" style="min-width: 5%; width: 0%;">0%</div>
+              </div>
+              <!-- implement the received and transferred bandwidth -->
+              <h5 id="bandwidth-monthly">Bandwidth Monthly (<b id="bandwidth-monthly-used">0</b> / <b id="bandwidth-monthly-limit">0</b> GiB)  <span class="glyphicon glyphicon-pencil" style="cursor:pointer" aria-hidden="true" id="edit-bandwidth-limit"></span> Since: <b id="bandwidth-monthly-start-date">-</b></h5>
+              <div class="progress progress-info">
+                <div id="bandwidth-monthly-progress-bar" class="progress-bar" style="min-width: 10%; width: 0%;">0%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12 col-md-6 col-lg-3">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <b>NGINX</b>
+            </div>
+            <ul class="list-group">
+              <li class="list-group-item">Requests per second: <b id="requests-per-second"></b>
+              </li>
+              <li class="list-group-item">Active connections: <b id="active-connections"></b>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-sm-12 col-md-6 col-lg-3">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <b>MySQL</b>
+            </div>
+            <div class="panel-body">
+              <span style="line-height: 26.6666660308838px;">NOT IMPLEMENTED YET!</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12 col-md-6 col-lg-3">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <b>ALERT ME</b>
+            </div>
+            <div class="panel-body">NOT IMPLEMENTED YET!
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer>
+        <h4 class="text-center">Developed by <b>Stenio Elson</b></h4>
+      </footer>
+    </div>
+  </body>
+
+</html>

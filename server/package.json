@@ -1,0 +1,15 @@
+{
+  "name": "sys-performance",
+  "version": "0.0.1",
+  "author": "Stenio Elson <contato@stenioelson.com.br>",
+  "engines": {
+    "node": "0.12.2"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "socket.io": "1.3.6"
+  },
+  "license": "MIT"
+}
