@@ -2,8 +2,14 @@ Sys-Performance
 ===============
 Sys-Performance is a simple system monitor for Ubuntu and Nginx. It uses Node.js and shell commands to retrieve CPU, ram, bandwidth and Nginx information.  The app works as an API and as a Socket.io server. For accessing the API one only needs to access the server at the chosen port. For using the Socket.io implementation one needs to set up the client folder in a webserver and/or locale. Although the API shows more information than the client page, the client page keeps you updated with real-time information about your server. Please let me know any issue.
 
+Client's interface
+------------------
+
+![Client's interface](https://lh3.googleusercontent.com/l1g34wmHJuV2sYJHtB2k1YCW9VkGfzmVauDzbv_5ibI=w1202-h609-no)
+
 Installation
 ------------
+
 First of all, the app relies upon some CLI commands. Although a basic Ubuntu installation has the ***free*** command, it is still necessary to install ***vnstat***. The app also uses a third developed software ***cpu_usage*** that should go together with the ***server.js***. That cpu_usage was created by [Paul Colby](http://colby.id.au).
 
  - Dependencies
