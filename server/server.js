@@ -169,7 +169,8 @@ var getBandwidth = function(callback) {
 	}
 	
 	exec("vnstat -m", function(error, stdout, stderr) {
-		stdout = stdout.split("\n")[5].trim();
+		stdout = stdout.split("\n");
+		stdout = stdout[stdout.length - 4].trim();
 
 		var bandwidth = /(.{6,7})[^0-9]+([0-9.]+ [^ ]+)[^0-9]+([0-9.]+ [^ ]+)[^0-9]+([0-9.]+ [^ ]+)/g.exec(stdout).slice(1,5);
 		
